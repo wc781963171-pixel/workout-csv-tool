@@ -5,8 +5,11 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'AI Workout to CSV',
-  description: 'Generate a professional AI workout program and download it as a CSV or Excel file. Perfect for Notion users and spreadsheet geeks. 100% Free.',
+	title: 'AI Workout to CSV',
+	description: 'Generate a professional AI workout program and download it as a CSV or Excel file. Perfect for Notion users and spreadsheet geeks. 100% Free.',
+	verification: {
+	  google: 'Qb4KWFmDgo5q6xeSIwR9uNQujz0uepS61yiZ_iDyM7Y',
+	},
 };
 
 export default function RootLayout({
