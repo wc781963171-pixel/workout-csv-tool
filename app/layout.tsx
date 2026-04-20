@@ -30,12 +30,11 @@ export default function RootLayout({
 
         {/* 2. 在这里添加 Google AdSense 代码 */}
         {/* 注意：请把 ca-pub-xxxxxxxxxxxxx 替换为你 AdSense 后台的真实 ID */}
-        <Script
+        <script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1783115982181211"
-          crossOrigin="anonymous"
-          strategy="afterInteractive"
-        />
+          crossOrigin="anonymous">
+		  </script>
       </body>
     </html>
   );
