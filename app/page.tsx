@@ -6,7 +6,6 @@
 	  const [goal, setGoal] = useState('Muscle Gain');
 	  const [equipment, setEquipment] = useState('Full Gym');
 	  const [experience, setExperience] = useState('Beginner');
-	  // 删除了无用的 format 状态
 	  const [loading, setLoading] = useState(false);
 	  const [workoutData, setWorkoutData] = useState<string[][]>([]);
 	  const [dietData, setDietData] = useState<string[][]>([]);
@@ -55,9 +54,7 @@
 	    saveAs(blob, fileName);
 	  };
 	  const workoutHeaders = ['Muscle Group', 'Exercise', 'Sets', 'Reps', 'Rest', 'Pro Tip'];
-	  // 饮食表头去掉了 Day，因为我们要按天分组展示
 	  const dietHeaders = ['Meal', 'Food / Recipe', 'Portion', 'Calories', 'Macros (P/C/F)', 'Dietary Tip'];
-	  // 通用表格渲染器
 	  const renderTable = (headers: string[], data: string[][]) => (
 	    <div className="overflow-x-auto rounded-lg border border-gray-700">
 	      <table className="w-full text-left border-collapse">
@@ -78,15 +75,14 @@
 	      </table>
 	    </div>
 	  );
-	  // 将饮食数据按天分组
 	  const groupedDietData = dietData.reduce((acc, row) => {
-	    const day = row[1]; // Day 在索引 1 的位置
+	    const day = row[1];
 	    if (!acc[day]) acc[day] = [];
 	    acc[day].push(row);
 	    return acc;
 	  }, {} as Record<string, string[][]>);
 	  return (
-	    <main className="min-h-screen bg-gray-950 text-gray-100 font-sans">
+	    <div className="min-h-screen bg-gray-950 text-gray-100 font-sans flex flex-col">
 	      {/* Hero 区域 */}
 	      <section className="flex flex-col items-center justify-center pt-24 pb-12 px-4 text-center">
 	        <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-white mb-6">
@@ -99,9 +95,10 @@
 	          Generate My Plan - Free
 	        </a>
 	      </section>
-	      {/* 表单区域 - 修改了移动端 Padding */}
-	      <section id="tool" className="max-w-5xl mx-auto py-16 px-4">
+	      {/* 表单区域 */}
+	      <section id="tool" className="max-w-5xl mx-auto py-16 px-4 w-full">
 	        <form onSubmit={handleGenerate} className="bg-gray-900 p-4 md:p-8 rounded-xl border border-gray-800 shadow-2xl space-y-6">
+	          {/* 表单内容保持不变 */}
 	          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 	            <div>
 	              <label className="block text-sm font-medium text-gray-300 mb-2">Fitness Goal</label>
@@ -131,7 +128,6 @@
 	              ))}
 	            </div>
 	          </div>
-	          {/* 删除了 Output Format 单选框 */}
 	          <button type="submit" disabled={loading} className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-gray-600 text-white font-bold py-4 rounded-lg transition duration-300 mt-4 flex items-center justify-center gap-2">
 	            {loading ? (
 	              <>
@@ -144,7 +140,7 @@
 	            ) : 'Generate AI Workout Plan'}
 	          </button>
 	        </form>
-	        {/* 结果展示区域 */}
+	        {/* 结果展示区保持不变 */}
 	        {(workoutData.length > 0 || dietData.length > 0) && (
 	          <div className="mt-10 space-y-8">
 	            <div className="flex justify-end">
@@ -165,12 +161,10 @@
 	                <h3 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
 	                  <span className="w-3 h-3 bg-green-500 rounded-full"></span> Diet Plan
 	                </h3>
-	                {/* 按天分组渲染饮食卡片 */}
 	                <div className="space-y-6">
 	                  {Object.entries(groupedDietData).map(([day, rows]) => (
 	                    <div key={day}>
 	                      <h4 className="text-xl font-bold text-green-400 mb-3 border-b border-gray-700 pb-2">{day}</h4>
-	                      {/* 渲染表格时，剔除数据中的 Day 列 (row[1])，因为标题已经有了 */}
 	                      {renderTable(dietHeaders, rows.map(row => [row[0], ...row.slice(2)]))}
 	                    </div>
 	                  ))}
@@ -180,6 +174,56 @@
 	          </div>
 	        )}
 	      </section>
-	    </main>
+	      {/* 🌟 新增：How it Works 区块 🌟 */}
+	      <section className="max-w-5xl mx-auto py-16 px-4 w-full">
+	        <h2 className="text-3xl md:text-4xl font-bold text-center text-white mb-12">How It Works</h2>
+	        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+	          <div className="bg-gray-900 p-6 rounded-xl border border-gray-800">
+	            <div className="text-4xl mb-4">🏋️</div>
+	            <h3 className="text-xl font-bold text-white mb-2">1. Customize Your Goal</h3>
+	            <p className="text-gray-400">Select your fitness goal, available equipment, and experience level.</p>
+	          </div>
+	          <div className="bg-gray-900 p-6 rounded-xl border border-gray-800">
+	            <div className="text-4xl mb-4">🤖</div>
+	            <h3 className="text-xl font-bold text-white mb-2">2. AI Generates Plan</h3>
+	            <p className="text-gray-400">Our AI trainer calculates optimal intensity, sets, reps, and macros for you.</p>
+	          </div>
+	          <div className="bg-gray-900 p-6 rounded-xl border border-gray-800">
+	            <div className="text-4xl mb-4">📊</div>
+	            <h3 className="text-xl font-bold text-white mb-2">3. Export to CSV/Notion</h3>
+	            <p className="text-gray-400">Download a clean CSV file and import it seamlessly into Notion or Excel.</p>
+	          </div>
+	        </div>
+	      </section>
+	      {/* 🌟 新增：FAQ 区块 🌟 */}
+	      <section className="max-w-3xl mx-auto py-16 px-4 w-full">
+	        <h2 className="text-3xl md:text-4xl font-bold text-center text-white mb-12">Frequently Asked Questions</h2>
+	        <div className="space-y-6">
+	          <div className="bg-gray-900 p-6 rounded-xl border border-gray-800">
+	            <h3 className="text-lg font-bold text-indigo-400">Is this AI workout generator free?</h3>
+	            <p className="text-gray-400 mt-2">Yes, generating a customized workout and diet plan is 100% free. No sign-up or credit card required.</p>
+	          </div>
+	          <div className="bg-gray-900 p-6 rounded-xl border border-gray-800">
+	            <h3 className="text-lg font-bold text-indigo-400">How do I import the CSV into Notion?</h3>
+	            <p className="text-gray-400 mt-2">Create a new table in Notion, click the &quot;...&quot; menu at the top right, select &quot;Merge with CSV&quot;, and upload the downloaded file. Your workout tracker is ready!</p>
+	          </div>
+	          <div className="bg-gray-900 p-6 rounded-xl border border-gray-800">
+	            <h3 className="text-lg font-bold text-indigo-400">Can I edit the plan after downloading?</h3>
+	            <p className="text-gray-400 mt-2">Absolutely. The CSV format gives you full control to adjust sets, reps, or macros in Excel, Google Sheets, or Notion before you start your program.</p>
+	          </div>
+	        </div>
+	      </section>
+	      {/* 🌟 新增：Footer 页脚 🌟 */}
+	      <footer className="max-w-5xl mx-auto py-8 px-4 border-t border-gray-800 mt-16 w-full">
+	        <div className="flex flex-col md:flex-row justify-between items-center text-gray-500 text-sm">
+	          <p>© {new Date().getFullYear()} AI Workout to CSV. All rights reserved.</p>
+	          <div className="flex gap-6 mt-4 md:mt-0">
+	            <a href="/privacy" className="hover:text-gray-300 transition-colors">Privacy Policy</a>
+	            <a href="/terms" className="hover:text-gray-300 transition-colors">Terms of Service</a>
+	            <a href="/about" className="hover:text-gray-300 transition-colors">About & Contact</a>
+	          </div>
+	        </div>
+	      </footer>
+	    </div>
 	  );
 	}
