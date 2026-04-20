@@ -6,7 +6,7 @@
 	  const [goal, setGoal] = useState('Muscle Gain');
 	  const [equipment, setEquipment] = useState('Full Gym');
 	  const [experience, setExperience] = useState('Beginner');
-	  const [format, setFormat] = useState('csv');
+	  // 删除了无用的 format 状态
 	  const [loading, setLoading] = useState(false);
 	  const [workoutData, setWorkoutData] = useState<string[][]>([]);
 	  const [dietData, setDietData] = useState<string[][]>([]);
@@ -23,6 +23,7 @@
 	        headers: { 'Content-Type': 'application/json' },
 	        body: JSON.stringify({ goal, equipment, experience })
 	      });
+	      if (!res.ok) throw new Error('Network response was not ok');
 	      const data = await res.json();
 	      const csvText = data.csv;
 	      setRawCsv(csvText);
@@ -54,8 +55,10 @@
 	    saveAs(blob, fileName);
 	  };
 	  const workoutHeaders = ['Muscle Group', 'Exercise', 'Sets', 'Reps', 'Rest', 'Pro Tip'];
-	  const dietHeaders = ['Meal', 'Day', 'Food / Recipe', 'Portion', 'Calories', 'Macros (P/C/F)', 'Dietary Tip'];
-	  const renderTable = (headers: string[], data: string[][], isDiet = false) => (
+	  // 饮食表头去掉了 Day，因为我们要按天分组展示
+	  const dietHeaders = ['Meal', 'Food / Recipe', 'Portion', 'Calories', 'Macros (P/C/F)', 'Dietary Tip'];
+	  // 通用表格渲染器
+	  const renderTable = (headers: string[], data: string[][]) => (
 	    <div className="overflow-x-auto rounded-lg border border-gray-700">
 	      <table className="w-full text-left border-collapse">
 	        <thead>
@@ -64,28 +67,27 @@
 	          </tr>
 	        </thead>
 	        <tbody>
-	          {data.map((row, i) => {
-	            let dayCellContent = isDiet ? row[1] : null;
-	            if (isDiet && i > 0 && row[1] === data[i-1][1]) {
-	              dayCellContent = ''; 
-	            }
-	            return (
-	              <tr key={i} className="border-b border-gray-800 hover:bg-gray-800/50 transition-colors">
-	                {row.map((cell, j) => {
-	                  if (isDiet && j === 1) {
-	                    return <td key={j} className="p-3 text-indigo-300 whitespace-nowrap font-semibold align-top">{dayCellContent}</td>;
-	                  }
-	                  return <td key={j} className="p-3 text-gray-300 whitespace-nowrap">{cell}</td>;
-	                })}
-	              </tr>
-	            );
-	          })}
+	          {data.map((row, i) => (
+	            <tr key={i} className="border-b border-gray-800 hover:bg-gray-800/50 transition-colors">
+	              {row.map((cell, j) => (
+	                <td key={j} className="p-3 text-gray-300 whitespace-nowrap">{cell}</td>
+	              ))}
+	            </tr>
+	          ))}
 	        </tbody>
 	      </table>
 	    </div>
 	  );
+	  // 将饮食数据按天分组
+	  const groupedDietData = dietData.reduce((acc, row) => {
+	    const day = row[1]; // Day 在索引 1 的位置
+	    if (!acc[day]) acc[day] = [];
+	    acc[day].push(row);
+	    return acc;
+	  }, {} as Record<string, string[][]>);
 	  return (
 	    <main className="min-h-screen bg-gray-950 text-gray-100 font-sans">
+	      {/* Hero 区域 */}
 	      <section className="flex flex-col items-center justify-center pt-24 pb-12 px-4 text-center">
 	        <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-white mb-6">
 	          AI Workout Generator to CSV
@@ -97,8 +99,9 @@
 	          Generate My Plan - Free
 	        </a>
 	      </section>
+	      {/* 表单区域 - 修改了移动端 Padding */}
 	      <section id="tool" className="max-w-5xl mx-auto py-16 px-4">
-	        <form onSubmit={handleGenerate} className="bg-gray-900 p-8 rounded-xl border border-gray-800 shadow-2xl space-y-6">
+	        <form onSubmit={handleGenerate} className="bg-gray-900 p-4 md:p-8 rounded-xl border border-gray-800 shadow-2xl space-y-6">
 	          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 	            <div>
 	              <label className="block text-sm font-medium text-gray-300 mb-2">Fitness Goal</label>
@@ -117,30 +120,18 @@
 	              </select>
 	            </div>
 	          </div>
-	          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-	            <div>
-	              <label className="block text-sm font-medium text-gray-300 mb-2">Experience</label>
-	              <div className="flex gap-4">
-	                {['Beginner', 'Intermediate', 'Advanced'].map(exp => (
-	                  <label key={exp} className="flex items-center space-x-2 cursor-pointer">
-	                    <input type="radio" name="experience" value={exp} checked={experience === exp} onChange={e => setExperience(e.target.value)} className="text-indigo-600 focus:ring-indigo-500" />
-	                    <span>{exp}</span>
-	                  </label>
-	                ))}
-	              </div>
-	            </div>
-	            <div>
-	              <label className="block text-sm font-medium text-gray-300 mb-2">Output Format</label>
-	              <div className="flex gap-4">
-	                {['CSV', 'Excel', 'Markdown'].map(fmt => (
-	                  <label key={fmt} className="flex items-center space-x-2 cursor-pointer">
-	                    <input type="radio" name="format" value={fmt.toLowerCase()} checked={format === fmt.toLowerCase()} onChange={e => setFormat(e.target.value)} className="text-indigo-600 focus:ring-indigo-500" />
-	                    <span>{fmt}</span>
-	                  </label>
-	                ))}
-	              </div>
+	          <div>
+	            <label className="block text-sm font-medium text-gray-300 mb-2">Experience</label>
+	            <div className="flex gap-4">
+	              {['Beginner', 'Intermediate', 'Advanced'].map(exp => (
+	                <label key={exp} className="flex items-center space-x-2 cursor-pointer">
+	                  <input type="radio" name="experience" value={exp} checked={experience === exp} onChange={e => setExperience(e.target.value)} className="text-indigo-600 focus:ring-indigo-500" />
+	                  <span>{exp}</span>
+	                </label>
+	              ))}
 	            </div>
 	          </div>
+	          {/* 删除了 Output Format 单选框 */}
 	          <button type="submit" disabled={loading} className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-gray-600 text-white font-bold py-4 rounded-lg transition duration-300 mt-4 flex items-center justify-center gap-2">
 	            {loading ? (
 	              <>
@@ -153,6 +144,7 @@
 	            ) : 'Generate AI Workout Plan'}
 	          </button>
 	        </form>
+	        {/* 结果展示区域 */}
 	        {(workoutData.length > 0 || dietData.length > 0) && (
 	          <div className="mt-10 space-y-8">
 	            <div className="flex justify-end">
@@ -173,7 +165,16 @@
 	                <h3 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
 	                  <span className="w-3 h-3 bg-green-500 rounded-full"></span> Diet Plan
 	                </h3>
-	                {renderTable(dietHeaders, dietData, true)}
+	                {/* 按天分组渲染饮食卡片 */}
+	                <div className="space-y-6">
+	                  {Object.entries(groupedDietData).map(([day, rows]) => (
+	                    <div key={day}>
+	                      <h4 className="text-xl font-bold text-green-400 mb-3 border-b border-gray-700 pb-2">{day}</h4>
+	                      {/* 渲染表格时，剔除数据中的 Day 列 (row[1])，因为标题已经有了 */}
+	                      {renderTable(dietHeaders, rows.map(row => [row[0], ...row.slice(2)]))}
+	                    </div>
+	                  ))}
+	                </div>
 	              </div>
 	            )}
 	          </div>
